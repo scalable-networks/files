@@ -119,7 +119,6 @@ InstallPackage libxml12-utils
 InstallPackage m4
 InstallPackage build-essential
 InstallPackage python-dev
-## InstallPackage libzmq-dev ## Needed?
 
 InstallPackage python
 InstallPackage python-mysqldb
@@ -145,18 +144,16 @@ then
 Info "Installing NodeJS and Node Modules"
 InstallPackage npm
 InstallPackage build-essential 
-## InstallPackage libzmq-dev ## Needed??
 
 ## Install Node from source
-# http://nodejs.org/dist/v0.10.13/node-v0.10.13-linux-x64.tar.gz
-#curl -O http://nodejs.org/dist/v0.10.13/node-v0.10.13.tar.gz
-#tar xzvf node-v0.10.13.tar.gz
-#pushd node-v0.10.13
-#./configure
-#make
-#sudo make install
-#sudo ldconfig
-#popd
+curl -O http://nodejs.org/dist/v0.10.13/node-v0.10.13.tar.gz
+tar xzvf node-v0.10.13.tar.gz
+pushd node-v0.10.13
+./configure
+make
+sudo make install
+sudo ldconfig
+popd
 
 fi
 
