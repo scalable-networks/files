@@ -142,10 +142,10 @@ if [[ $simservice =~ ^(yes|y)$ || $coreservices =~ ^(yes|y)$ || $vmmgr =~ ^(yes|
 then
 
 Info "Installing NodeJS and Node Modules"
-InstallPackage npm
-InstallPackage build-essential 
+InstallPackage build-essential
+InstallPackage curl
 
-## Install Node from source
+## Install Node and NPM from source
 curl -O http://nodejs.org/dist/v0.10.13/node-v0.10.13.tar.gz
 tar xzvf node-v0.10.13.tar.gz
 pushd node-v0.10.13
