@@ -115,7 +115,7 @@ InstallPackage libapache2-mod-wsgi
 
 Info "Installing Python / Django"
 InstallPackage unzip
-InstallPackage libxml12-utils
+InstallPackage libxml2-utils
 InstallPackage m4
 InstallPackage build-essential
 InstallPackage python-dev
@@ -125,10 +125,10 @@ InstallPackage python-mysqldb
 InstallPackage python-pip
 
 sudo pip install -U pip
-sudo pip install Django==1.6
-sudo pip install djangorestframework==2.3.14
-sudo pip install netaddr==0.7.11
-sudo pip install pymongo==2.7.1
+sudo pip install -U Django==1.6
+sudo pip install -U djangorestframework==2.3.14
+sudo pip install -U netaddr==0.7.11
+sudo pip install -U pymongo==2.7.1
 
 sudo service apache2 restart
 
