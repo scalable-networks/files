@@ -184,11 +184,6 @@ InstallPackage freeswitch-meta-vanilla
 InstallPackage freeswitch-mod-shout
 InstallPackage freeswitch-mod-opus
 
-sudo cp -r /usr/share/freeswitch/conf/vanilla /etc/freeswitch
-sudo chown -R freeswitch /etc/freeswitch
-
-sudo service freeswitch restart
-
 fi
 
 ## Samba File Server
