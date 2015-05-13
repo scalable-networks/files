@@ -1,0 +1,530 @@
+diff -crB 1.1/CoreServices/ChatServer.js 1.1p1/CoreServices/ChatServer.js
+*** 1.1/CoreServices/ChatServer.js	2015-03-11 08:02:32.000000000 -0700
+--- 1.1p1/CoreServices/ChatServer.js	2015-05-13 05:57:21.000000000 -0700
+***************
+*** 301,306 ****
+--- 302,308 ----
+                      teamSideList[key]["type"] = "team";
+                      teamSideList[key]["sideId"] = message.deviceStatus[i].traineeSideID;
+                      teamSideList[key]["name"] = message.deviceStatus[i].teams[j];
++                     teamSideList[key]["teamId"] = "team" + i + j;
+                  }
+              }
+          }
+diff -crB 1.1/WebApp/NDTApi/views.py 1.1p1/WebApp/NDTApi/views.py
+*** 1.1/WebApp/NDTApi/views.py	2015-05-06 03:17:24.847739589 -0700
+--- 1.1p1/WebApp/NDTApi/views.py	2015-05-13 16:15:14.000000000 -0700
+***************
+*** 1407,1413 ****
+                for mappingteamobj in mappingteamobjs:
+                  trainee['teamid'] = mappingteamobj.teamid.teamid
+              else:
+!                 trainee['teamid'] = null
+              traineeInfo.append(trainee)
+          participantJson['trainee'] = traineeInfo
+          
+--- 1407,1413 ----
+                for mappingteamobj in mappingteamobjs:
+                  trainee['teamid'] = mappingteamobj.teamid.teamid
+              else:
+!                 trainee['teamid'] = None
+              traineeInfo.append(trainee)
+          participantJson['trainee'] = traineeInfo
+          
+***************
+*** 1927,1930 ****
+              res = config.getSimControllerConfig()
+          elif request.GET.get("configType") == "voiceCallLogger":
+              res = config.getVoiceCallLoggerConfig()
+!         return HttpResponse(res)
+--- 1927,1930 ----
+              res = config.getSimControllerConfig()
+          elif request.GET.get("configType") == "voiceCallLogger":
+              res = config.getVoiceCallLoggerConfig()
+!         return HttpResponse(res)
+\ No newline at end of file
+diff -crB 1.1/WebApp/template/ExerciseController/exercise.html 1.1p1/WebApp/template/ExerciseController/exercise.html
+*** 1.1/WebApp/template/ExerciseController/exercise.html	2015-04-16 01:49:32.000000000 -0700
+--- 1.1p1/WebApp/template/ExerciseController/exercise.html	2015-05-13 16:15:24.000000000 -0700
+***************
+*** 759,765 ****
+  function displayChat(data)
+  {
+      var self = '{{ user.username }}';
+!     var displayTab;
+      if (data.receiver == self)
+      {
+          displayTab = data.sender;
+--- 759,765 ----
+  function displayChat(data)
+  {
+      var self = '{{ user.username }}';
+!     var displayTab, displayTabId;
+      if (data.receiver == self)
+      {
+          displayTab = data.sender;
+***************
+*** 794,809 ****
+      });
+      }
+  
+      $('#tab-list ul li a').each(function(i) {
+!     if ($(this).attr('id') == displayTab
+!      && $('div#tab-list ul li.ui-state-active a').text() != $(this).text())
+!     {
+!         $('#chatSessionAvailable').remove();
+!       $(this).parent().show();
+!       $(this).attr('style', 'text-decoration: underline;');
+!     }
+      });
+!     $('#tab' + displayTab).append(hour + ':' + min + ' | ' + data.sender + ': ' + data.value + '<br>');
+  }
+  var color = '#B2B2B2';
+  function isTeamAlreadyExists(team)
+--- 794,823 ----
+      });
+      }
+  
++     displayTabId = displayTab;
++ 
+      $('#tab-list ul li a').each(function(i) {
+!         //$(this).html() returns the tab name
+!         if ($(this).html() == displayTab)
+!         {
+!             //Check if tab has team attribute 
+!             var teamID = $(this).attr('teamId');
+!             if (typeof(teamID)!= 'undefined')
+!             {
+!                 displayTabId = displayTabId.replace(/[\s]/g, teamID);
+!             }
+!         }
+! 
+!         if ($(this).attr('id') == displayTabId
+!          && $('div#tab-list ul li.ui-state-active a').text() != $(this).text())
+!         {
+!             $('#chatSessionAvailable').remove();
+!             $(this).parent().show();
+!             $(this).attr('style', 'text-decoration: underline;');
+!         }
+      });
+!     
+!     $('#tab' + displayTabId).append(hour + ':' + min + ' | ' + data.sender + ': ' + data.value + '<br>');
+  }
+  var color = '#B2B2B2';
+  function isTeamAlreadyExists(team)
+***************
+*** 826,834 ****
+  }
+  
+  // add required info in tab
+! function addTabInList(nameToAdd, sipId, tabType)
+  {
+      var nameToCheck = nameToAdd;
+      var tabNameExists = false;
+      addUserInfo(nameToAdd, sipId, tabType);
+      $('#tab-list ul li a').each(function(i) {
+--- 840,852 ----
+  }
+  
+  // add required info in tab
+! function addTabInList(nameToAdd, sipId, tabType, teamId)
+  {
+      var nameToCheck = nameToAdd;
++     if (typeof teamId != undefined)
++     {
++         nameToCheck = nameToCheck.replace(/[\s]/g, teamId);
++     }
+      var tabNameExists = false;
+      addUserInfo(nameToAdd, sipId, tabType);
+      $('#tab-list ul li a').each(function(i) {
+***************
+*** 839,853 ****
+  
+      if (!tabNameExists)
+      {
+!       $("div#tab-list ul").append(
+!         "<li><a id='" + nameToCheck + "' href='#tab" + nameToCheck + "' sipId='" + sipId + "' type='" + tabType + "'>" + nameToCheck + "</a></li>"
+!         );
+!       $("div#tabs").append(
+          "<div class='tabContainer' id='tab" + nameToCheck + "'></div>"
+          );
+!       $("div#tabs").tabs("refresh");
+!       $("#tab"+nameToCheck).hide();
+!       $('div#tab-list ul li a#'+nameToCheck).parent().hide();
+      }
+    }
+  
+--- 857,878 ----
+  
+      if (!tabNameExists)
+      {
+!         if (tabType == "team")
+!         {
+!             $("div#tab-list ul").append("<li><a id='" + nameToCheck + "' href='#tab" + nameToCheck + "' sipId='" + sipId + "' type='" + tabType + "' teamId='" + teamId + "'>" + nameToAdd + "</a></li>"
+!              );
+!         }
+!         else
+!         {
+!             $("div#tab-list ul").append("<li><a id='" + nameToCheck + "' href='#tab" + nameToCheck + "' sipId='" + sipId + "' type='" + tabType + "'>" + nameToAdd + "</a></li>"
+!             );
+!         }
+!         $("div#tabs").append(
+          "<div class='tabContainer' id='tab" + nameToCheck + "'></div>"
+          );
+!         $("div#tabs").tabs("refresh");
+!         $("#tab"+nameToCheck).hide();
+!         $('div#tab-list ul li a#'+nameToCheck).parent().hide();
+      }
+    }
+  
+***************
+*** 913,921 ****
+              $("#chat-list ul.red").append("<li style='text-underline:none;'><a style='color:#d63333' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "side");
+          }
+!         else if (teamToAdd != 0 && $("#chat-list #"+sideToAdd+"-"+teamToAdd).length != 0)
+          {
+!             $("#chat-list ul.red").find('#'+sideToAdd+"-"+teamToAdd).closest('li').append("<li style='text-underline:none;'><a style='color:#d63333' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+          else if (teamToAdd == 0)
+--- 938,946 ----
+              $("#chat-list ul.red").append("<li style='text-underline:none;'><a style='color:#d63333' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "side");
+          }
+!         else if (teamToAdd != 0 && $("#chat-list ul li a[teamid=" + data.team.teamId + "]").length != 0)
+          {
+!             $("#chat-list ul.red").find("a[teamid=" + data.team.teamId + "]").closest('li').append("<li style='text-underline:none;'><a style='color:#d63333' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+          else if (teamToAdd == 0)
+***************
+*** 927,934 ****
+          {
+              var teamToAddInList = sideToAdd+"-"+teamToAdd;
+              var teamSipId = JSON.parse(data.team.sipConfig)['sipId'];
+!             $("#chat-list ul.red").append("<li style='text-underline:none;'><a style='color:#d63333' href='#' value='" +teamToAddInList+"' id='" + teamToAddInList + "'>" + extra + teamToAdd + "</a></li>");
+!             addTabInList(teamToAddInList, teamSipId, "team");
+              $("#chat-list ul.red").append("<li style='text-underline:none;'><a style='color:#d63333' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+--- 952,960 ----
+          {
+              var teamToAddInList = sideToAdd+"-"+teamToAdd;
+              var teamSipId = JSON.parse(data.team.sipConfig)['sipId'];
+!             var teamId = data.team.teamId;
+!             $("#chat-list ul.red").append("<li style='text-underline:none;'><a style='color:#d63333' href='#' value='" +teamToAddInList+"' id='" + teamToAddInList + "' teamId='" + teamId + "'>" + extra + teamToAdd + "</a></li>");
+!             addTabInList(teamToAddInList, teamSipId, "team", teamId);
+              $("#chat-list ul.red").append("<li style='text-underline:none;'><a style='color:#d63333' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+***************
+*** 948,956 ****
+              $("#chat-list ul.all").append("<li style='text-underline:none;'><a style='color:#B2B2B2' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + nameToAdd + "</a></li>");
+  
+          }
+!         else if (teamToAdd != 0 && $("#chat-list #"+sideToAdd+"-"+teamToAdd).length != 0)
+          {
+!             $("#chat-list ul.all").find('#'+sideToAdd+"-"+teamToAdd).closest('li').append("<li style='text-underline:none;'><a style='color:#B2B2B2' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+          else if (teamToAdd == 0)
+--- 974,982 ----
+              $("#chat-list ul.all").append("<li style='text-underline:none;'><a style='color:#B2B2B2' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + nameToAdd + "</a></li>");
+  
+          }
+!         else if (teamToAdd != 0 && $("#chat-list ul li a[teamid=" + data.team.teamId + "]").length != 0)
+          {
+!             $("#chat-list ul.all").find("a[teamid=" + data.team.teamId + "]").closest('li').append("<li style='text-underline:none;'><a style='color:#B2B2B2' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+          else if (teamToAdd == 0)
+***************
+*** 962,969 ****
+          {
+              var teamToAddInList = sideToAdd+"-"+teamToAdd;
+              var teamSipId = JSON.parse(data.team.sipConfig)['sipId'];
+!             $("#chat-list ul.all").append("<li style='text-underline:none;'><a style='color:#B2B2B2' href='#' value='" +teamToAddInList+"' id='" + teamToAddInList + "'>" + extra + teamToAdd + "</a></li>");
+!             addTabInList(teamToAddInList, teamSipId, "team");
+              $("#chat-list ul.all").append("<li style='text-underline:none;'><a style='color:#B2B2B2' href='#' value='" +nameToAdd+"'  id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+--- 988,996 ----
+          {
+              var teamToAddInList = sideToAdd+"-"+teamToAdd;
+              var teamSipId = JSON.parse(data.team.sipConfig)['sipId'];
+!             var teamId = data.team.teamId;
+!             $("#chat-list ul.all").append("<li style='text-underline:none;'><a style='color:#B2B2B2' href='#' value='" +teamToAddInList+"' id='" + teamToAddInList + "' teamId='" + teamId + "'>" + extra + teamToAdd + "</a></li>");
+!             addTabInList(teamToAddInList, teamSipId, "team", teamId);
+              $("#chat-list ul.all").append("<li style='text-underline:none;'><a style='color:#B2B2B2' href='#' value='" +nameToAdd+"'  id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+***************
+*** 975,983 ****
+              $("#chat-list ul.blue").append("<li style='text-underline:none;'><a style='color:#005c99' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "side");
+          }
+!         else if (teamToAdd != 0 && $("#chat-list #"+sideToAdd+"-"+teamToAdd).length != 0)
+          {
+!             $("#chat-list ul.blue").find('#'+sideToAdd+"-"+teamToAdd).closest('li').append("<li style='text-underline:none;'><a style='color:#005c99' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+          else if (teamToAdd == 0)
+--- 1002,1010 ----
+              $("#chat-list ul.blue").append("<li style='text-underline:none;'><a style='color:#005c99' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "side");
+          }
+!         else if (teamToAdd != 0 && $("#chat-list ul li a[teamid=" + data.team.teamId + "]").length != 0)
+          {
+!             $("#chat-list ul.blue").find("a[teamid=" + data.team.teamId + "]").closest('li').append("<li style='text-underline:none;'><a style='color:#005c99' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+          else if (teamToAdd == 0)
+***************
+*** 989,996 ****
+          {
+              var teamToAddInList = sideToAdd+"-"+teamToAdd;
+              var teamSipId = JSON.parse(data.team.sipConfig)['sipId'];
+!             $("#chat-list ul.blue").append("<li style='text-underline:none;'><a style='color:#005c99' href='#' value='" +teamToAddInList+"' id='" + teamToAddInList + "'>" + extra + teamToAdd + "</a></li>");
+!             addTabInList(teamToAddInList, teamSipId, "team");
+              $("#chat-list ul.blue").append("<li style='text-underline:none;'><a style='color:#005c99' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+--- 1016,1024 ----
+          {
+              var teamToAddInList = sideToAdd+"-"+teamToAdd;
+              var teamSipId = JSON.parse(data.team.sipConfig)['sipId'];
+!             var teamId = data.team.teamId;
+!             $("#chat-list ul.blue").append("<li style='text-underline:none;'><a style='color:#005c99' href='#' value='" +teamToAddInList+"' id='" + teamToAddInList + "' teamId='" + teamId + "'>" + extra + teamToAdd + "</a></li>");
+!             addTabInList(teamToAddInList, teamSipId, "team", teamId);
+              $("#chat-list ul.blue").append("<li style='text-underline:none;'><a style='color:#005c99' href='#' value='" +nameToAdd+"' id='" + nameToAddInList + "'>" + extra + extra + nameToAdd + "</a></li>");
+              addTabInList(nameToAdd, sipidToAdd, "user");
+          }
+***************
+*** 1000,1005 ****
+--- 1028,1038 ----
+    chat.push(chatJson);
+    $("#chat-list a").unbind().on('click', function(e) {
+      var name = $(this).attr('value');
++     var teamID = $(this).attr('teamId');
++     if ( typeof(teamID) != undefined)
++     {
++         name = name.replace(/[\s]/g, teamID);
++     }
+      $('#chatSessionAvailable').remove();
+      document.getElementById("close-btn").style.visibility="visible";
+      $('#tab-list ul li a').each(function(i) {
+***************
+*** 2303,2319 ****
+  }
+  function displayStream(traineeIP,traineeName){
+                      if($('#dvLiveStream1').find('.exercise-stream-liveStream').find('img').attr('id') == ''){
+!                         liveStreamIndex = 1;
+!                     }
+                      else if($('#dvLiveStream2').find('.exercise-stream-liveStream').find('img').attr('id') == ''){
+!                         liveStreamIndex = 2;
+!                     }
+                      else if($('#dvLiveStream3').find('.exercise-stream-liveStream').find('img').attr('id') == ''){
+!                         liveStreamIndex = 3;
+!                     }
+                      else if($('#dvLiveStream4').find('.exercise-stream-liveStream').find('img').attr('id') == ''){
+!                         liveStreamIndex = 4;
+!                     }
+                      else{
+                          liveStreamIndex = 1;
+                          var replacedTraineeIP = $('#dvLiveStream1').find('.exercise-stream-liveStream').find('img').attr('id');
+--- 2336,2352 ----
+  }
+  function displayStream(traineeIP,traineeName){
+                      if($('#dvLiveStream1').find('.exercise-stream-liveStream').find('img').attr('id') == ''){
+! 						liveStreamIndex = 1;
+! 					}
+                      else if($('#dvLiveStream2').find('.exercise-stream-liveStream').find('img').attr('id') == ''){
+! 						liveStreamIndex = 2;
+! 					}
+                      else if($('#dvLiveStream3').find('.exercise-stream-liveStream').find('img').attr('id') == ''){
+! 						liveStreamIndex = 3;
+! 					}
+                      else if($('#dvLiveStream4').find('.exercise-stream-liveStream').find('img').attr('id') == ''){
+! 						liveStreamIndex = 4;
+! 					}
+                      else{
+                          liveStreamIndex = 1;
+                          var replacedTraineeIP = $('#dvLiveStream1').find('.exercise-stream-liveStream').find('img').attr('id');
+***************
+*** 2326,2388 ****
+                          {
+                              $('#dvLiveStream1').removeClass('stream-hidden');
+                          }
+!                         $('#dvLiveStream1').addClass('stream-live');
+!                         $('#dvLiveStream1').find('.exercise-stream-headerText').html(traineeName + " ("+ traineeIP + ")");
+                          var imgRef1 = $('#dvLiveStream1').find('.exercise-stream-liveStream').find('img');
+                          $(imgRef1).attr('id', traineeIP);
+                          $(imgRef1).attr('data-aspectRatio', 0);
+!                         liveStreamIndex = 2;
+!                         break;
+!                         case 2:
+                          if ($('.exercise-stream-mainContainer').find('.exercise-stream-streamDetail-fullScreen').length == 0)
+                          {
+                              $('#dvLiveStream2').removeClass('stream-hidden');
+                          }
+                          $('#dvLiveStream2').addClass('stream-live');
+!                         $('#dvLiveStream2').find('.exercise-stream-headerText').html(traineeName + " ("+ traineeIP + ")");
+                          var imgRef2 = $('#dvLiveStream2').find('.exercise-stream-liveStream').find('img');
+                          $(imgRef2).attr('id', traineeIP);
+                          $(imgRef2).attr('data-aspectRatio', 0);
+!                         liveStreamIndex = 3;
+!                         break;
+!                         case 3:
+                          if ($('.exercise-stream-mainContainer').find('.exercise-stream-streamDetail-fullScreen').length == 0)
+                          {
+                              $('#dvLiveStream3').removeClass('stream-hidden');
+                          }
+                          $('#dvLiveStream3').addClass('stream-live');
+!                         $('#dvLiveStream3').find('.exercise-stream-headerText').html(traineeName + " ("+ traineeIP + ")");
+                          var imgRef3 = $('#dvLiveStream3').find('.exercise-stream-liveStream').find('img');
+                          $(imgRef3).attr('id', traineeIP);
+                          $(imgRef3).attr('data-aspectRatio', 0);
+!                         liveStreamIndex = 4;
+!                         break;
+!                         case 4:
+                          if ($('.exercise-stream-mainContainer').find('.exercise-stream-streamDetail-fullScreen').length == 0)
+                          {
+                              $('#dvLiveStream4').removeClass('stream-hidden');
+                          }
+                          $('#dvLiveStream4').addClass('stream-live');
+!                         $('#dvLiveStream4').find('.exercise-stream-headerText').html(traineeName + " ("+ traineeIP + ")");
+                          var imgRef4 = $('#dvLiveStream4').find('.exercise-stream-liveStream').find('img');
+                          $(imgRef4).attr('id', traineeIP);
+                          $(imgRef4).attr('data-aspectRatio', 0);
+!                         liveStreamIndex = 1;
+!                         reuseIndex = 1;
+!                         break;
+!                     }
+!             }
+!             function intializeForBitmap(obj, traineeIP,traineeName){
+!                 if(traineeIPString.indexOf(traineeIP.toString()) == -1){
+!             //var id='#dv' + traineeIP.toString().replace('.', '-');
+!             $(obj).addClass('exercise-stream-traineeDetailBlue');
+!             if(socket1){
+!                 socket1.emit('ViewStream', traineeIP.toString());
+!             }
+!             displayStream(traineeIP,traineeName);
+!             traineeIPString += traineeIP.toString() + ";";
+!         }
+!     }
+      $(document).ready(function(){
+          $('.stream-iconMaximize').on('click', function(){
+              $('.exercise-stream-mainContainer').find('.stream-live').addClass('stream-hidden');
+--- 2359,2421 ----
+                          {
+                              $('#dvLiveStream1').removeClass('stream-hidden');
+                          }
+! 						$('#dvLiveStream1').addClass('stream-live');
+! 						$('#dvLiveStream1').find('.exercise-stream-headerText').html(traineeName + " ("+ traineeIP + ")");
+                          var imgRef1 = $('#dvLiveStream1').find('.exercise-stream-liveStream').find('img');
+                          $(imgRef1).attr('id', traineeIP);
+                          $(imgRef1).attr('data-aspectRatio', 0);
+! 						liveStreamIndex = 2;
+! 						break;
+! 						case 2:
+                          if ($('.exercise-stream-mainContainer').find('.exercise-stream-streamDetail-fullScreen').length == 0)
+                          {
+                              $('#dvLiveStream2').removeClass('stream-hidden');
+                          }
+                          $('#dvLiveStream2').addClass('stream-live');
+! 						$('#dvLiveStream2').find('.exercise-stream-headerText').html(traineeName + " ("+ traineeIP + ")");
+                          var imgRef2 = $('#dvLiveStream2').find('.exercise-stream-liveStream').find('img');
+                          $(imgRef2).attr('id', traineeIP);
+                          $(imgRef2).attr('data-aspectRatio', 0);
+! 						liveStreamIndex = 3;
+! 						break;
+! 						case 3:
+                          if ($('.exercise-stream-mainContainer').find('.exercise-stream-streamDetail-fullScreen').length == 0)
+                          {
+                              $('#dvLiveStream3').removeClass('stream-hidden');
+                          }
+                          $('#dvLiveStream3').addClass('stream-live');
+! 						$('#dvLiveStream3').find('.exercise-stream-headerText').html(traineeName + " ("+ traineeIP + ")");
+                          var imgRef3 = $('#dvLiveStream3').find('.exercise-stream-liveStream').find('img');
+                          $(imgRef3).attr('id', traineeIP);
+                          $(imgRef3).attr('data-aspectRatio', 0);
+! 						liveStreamIndex = 4;
+! 						break;
+! 						case 4:
+                          if ($('.exercise-stream-mainContainer').find('.exercise-stream-streamDetail-fullScreen').length == 0)
+                          {
+                              $('#dvLiveStream4').removeClass('stream-hidden');
+                          }
+                          $('#dvLiveStream4').addClass('stream-live');
+! 						$('#dvLiveStream4').find('.exercise-stream-headerText').html(traineeName + " ("+ traineeIP + ")");
+                          var imgRef4 = $('#dvLiveStream4').find('.exercise-stream-liveStream').find('img');
+                          $(imgRef4).attr('id', traineeIP);
+                          $(imgRef4).attr('data-aspectRatio', 0);
+! 						liveStreamIndex = 1;
+! 						reuseIndex = 1;
+! 						break;
+! 					}
+! 			}
+! 			function intializeForBitmap(obj, traineeIP,traineeName){
+! 				if(traineeIPString.indexOf(traineeIP.toString()) == -1){
+! 			//var id='#dv' + traineeIP.toString().replace('.', '-');
+! 			$(obj).addClass('exercise-stream-traineeDetailBlue');
+! 			if(socket1){
+! 				socket1.emit('ViewStream', traineeIP.toString());
+! 			}
+! 			displayStream(traineeIP,traineeName);
+! 			traineeIPString += traineeIP.toString() + ";";
+! 		}
+! 	}
+      $(document).ready(function(){
+          $('.stream-iconMaximize').on('click', function(){
+              $('.exercise-stream-mainContainer').find('.stream-live').addClass('stream-hidden');
+***************
+*** 2478,2491 ****
+                  }
+          });
+  
+!         $('.exercise-stream-liveStream').on('click', function(){
+!             $('.exercise-stream-mainContainer').find('.stream-live').addClass('stream-hidden');
+!             $(this.parentNode).removeClass('stream-hidden');
+!             $(this.parentNode).addClass('exercise-stream-streamDetail-fullScreen');
+!             $(this.parentNode).find('.stream-iconMaximize').addClass('stream-iconHidden');
+!             $(this.parentNode).find('.stream-iconMinimize').removeClass('stream-iconHidden');
+              $(this.parentNode).find('.stream-iconMaximize').trigger("click");
+!         });
+          
+          // Bind event for full screen change.This will handle both the cases when going to and coming out of full screen mode 
+          $(document).bind(" fullscreenchange mozfullscreenchange webkitfullscreenchange msfullscreenchange", function(e)
+--- 2511,2524 ----
+                  }
+          });
+  
+! 		$('.exercise-stream-liveStream').on('click', function(){
+! 			$('.exercise-stream-mainContainer').find('.stream-live').addClass('stream-hidden');
+! 			$(this.parentNode).removeClass('stream-hidden');
+! 			$(this.parentNode).addClass('exercise-stream-streamDetail-fullScreen');
+! 			$(this.parentNode).find('.stream-iconMaximize').addClass('stream-iconHidden');
+! 			$(this.parentNode).find('.stream-iconMinimize').removeClass('stream-iconHidden');
+              $(this.parentNode).find('.stream-iconMaximize').trigger("click");
+! 		});
+          
+          // Bind event for full screen change.This will handle both the cases when going to and coming out of full screen mode 
+          $(document).bind(" fullscreenchange mozfullscreenchange webkitfullscreenchange msfullscreenchange", function(e)
+***************
+*** 2534,2540 ****
+                  }
+              }
+          });
+!     });
+  
+  /// \brief Function to clear fullScreenData attributes
+  function clrImgFllScrnData()
+--- 2567,2573 ----
+                  }
+              }
+          });
+! 	});
+  
+  /// \brief Function to clear fullScreenData attributes
+  function clrImgFllScrnData()
