@@ -31,18 +31,6 @@ diff -crB 1.1/WebApp/NDTApi/views.py 1.1p1/WebApp/NDTApi/views.py
               traineeInfo.append(trainee)
           participantJson['trainee'] = traineeInfo
           
-***************
-*** 1927,1930 ****
-              res = config.getSimControllerConfig()
-          elif request.GET.get("configType") == "voiceCallLogger":
-              res = config.getVoiceCallLoggerConfig()
-!         return HttpResponse(res)
---- 1927,1930 ----
-              res = config.getSimControllerConfig()
-          elif request.GET.get("configType") == "voiceCallLogger":
-              res = config.getVoiceCallLoggerConfig()
-!         return HttpResponse(res)
-\ No newline at end of file
 diff -crB 1.1/WebApp/template/ExerciseController/exercise.html 1.1p1/WebApp/template/ExerciseController/exercise.html
 *** 1.1/WebApp/template/ExerciseController/exercise.html	2015-04-16 01:49:32.000000000 -0700
 --- 1.1p1/WebApp/template/ExerciseController/exercise.html	2015-05-13 16:15:24.000000000 -0700
