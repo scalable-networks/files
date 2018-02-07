@@ -124,7 +124,7 @@ InstallPackage python
 InstallPackage python-mysqldb
 InstallPackage python-pip
 
-sudo pip install -U pip
+sudo pip install -U pip --index-url=https://pypi.python.org/simple/
 sudo pip install -U Django==1.6.2
 sudo pip install -U djangorestframework==2.3.14
 sudo pip install -U netaddr==0.7.11
