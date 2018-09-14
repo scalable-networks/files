@@ -232,6 +232,13 @@ fi
 if [[ $simservice =~ ^(yes|y)$ ]]
 then
 let 'count=count+1';
+
+Info "[$count/$total] Installing LSB Core"
+InstallPackage lsb-core
+
+Info "[$count/$total] Installing DKMS"
+InstallPackage dkms
+
 Info "[$count/$total] Installing LIBpcap"
 InstallPackage libpcap0.8
 
