@@ -1,0 +1,84 @@
+User Guide for hosting a shared File Server and mounting a Shared File System
+=============================================================================
+
+Pre-requisite:
+1. Samba should be already installed on system.
+2. Cifs-util tools should be installed on system for mounting.
+
+Hosting Shared File System on Linux : 
+------------------------------------
+Following are the steps to host Shared File System on Linux:
+
+1. Open Terminal and type
+   cd /home/ndt
+   
+2. Type following commands:
+   sudo chmod 777 create_share.sh
+   sudo bash create_share.sh <shared_folder>
+
+Note: Assuming that the user directory is /home/ndt and script "create_share.sh" is placed at user directory 
+
+Where, <shared_folder> is the name of the shared folder
+
+Eg.: sudo bash create_share.sh share
+
+This step will create the shared folder /home/ndt/share
+
+To verify the share is created successfully, access share folder: 
+smb://<ndt-server>/<shared_folder>
+
+
+Mounting Shared File System :
+-----------------------------
+Pre-requisite test.
+1. The shared location of server is accesible through smb. Can be checked by opening location 
+smb://<ndt-server>/<shared_folder>
+
+
+Following are the steps to mount the Shared File System:
+
+1. Open Terminal and type
+   cd /home/ndt
+   
+2. Type following commands:
+   sudo chmod 777 mount_script.sh
+   sudo bash mount_script.sh <network-location> <mount-point>
+   
+   Where, <network-location> is the network path to the NDT shared file system 
+   and <mount-point> is the path of the local mount point
+   
+  Eg.: sudo bash mount_script.sh //ndt-server-IP/share /mnt/share
+  
+  Note: If you receive an error similar to the following, it is likely that NDT shared file system is not accessible by name:
+  Mount error: could not resolve address for ndt-server: Unknown error
+  Using the IP address of the NDT shared file system in the network path should correct this issue.
+   
+Note: Assuming that the user directory is /home/ndt and script "mount_script.sh" is placed at user directory 
+
+
+-------------------------------------------------------------------------
+Precautions /Possible errors faced:
+
+1. Mounted location not shown after boot up of system. 
+
+Mounting script needs to be run once on system for a particular mounting location(/mnt/share) only.
+At boot up Samba service and mounting service might run into race condition, resulting in failure of mounting.
+Run following command on Terminal, before running NDT services on the system:
+
+sudo mount -a;
+
+This would mount all pending mountings.
+ 
+2.  Common reason for failure of mouting script.
+
+Make sure /mnt/share is not already mounted,  to check run command
+mount | grep /mnt/share
+There should be no entry if unmounted.
+
+If it is mounted,Do unmouting by:-
+sudo umount -f /mnt/share
+
+----------------------------------------------------------------------
+
+
+
