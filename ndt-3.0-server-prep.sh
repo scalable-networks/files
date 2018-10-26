@@ -210,6 +210,8 @@ then
     let 'count=count+1';
 fi
 
+Info "$str/$total] Installing ZMQ";
+InstallPackage libzmq5
 
 Info "$str/$total] Installing NodeJS and Node Modules";
 
